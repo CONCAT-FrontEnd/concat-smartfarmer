@@ -1,15 +1,16 @@
-// Package smartfarm defines sensor data model of smart farm
-// and implements cloud functions for CRUD operations.
-package smartfarm
+// Package functions defines sensor data model
+// and implements CRUD operations of smart farm.
+package functions
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
-// [Start smart_farm_sensor_data_struct]
+// [Start cloud_functions_sensor_data_struct]
 
-// SensorData represents a single document of smartfarm sensor data collection.
+// SensorData represents a single document of smart farm sensor data collection.
 type SensorData struct {
 	UUID                   string    `json:"uuid"`
 	LiquidTemperature      float64   `json:"liquid_temperature"`
@@ -27,7 +28,7 @@ type SensorData struct {
 	LocalTime              time.Time `json:"local_time"`
 }
 
-// [End smart_farm_sensor_data_struct]
+// [End cloud_functions_sensor_data_struct]
 
 // setTime sets the time of sensor data.
 func (s *SensorData) setTime() {
@@ -35,17 +36,17 @@ func (s *SensorData) setTime() {
 	s.UnixTime = s.LocalTime.Unix()
 }
 
-// verify verifies that there are any unusual values in sensor data.
+// verify verifies that there are any invalid values in sensor data.
 func (s SensorData) verify() error {
 	var msg string
 	if s.PH < 0 || s.PH > 14 {
-		msg += "Invalid value in pH."
+		msg += fmt.Sprintf("Invalid value in pH: %f\n", s.PH)
 	}
 	if s.ElectricalConductivity < 0 || s.ElectricalConductivity > 2 {
-		msg += "Invalid value in EC."
+		msg += fmt.Sprintf("Invalid value in electrical conductivity: %f\n", s.ElectricalConductivity)
 	}
 	if s.Light < 0 || s.Light > 100 {
-		msg += "Invalid value in light intensity."
+		msg += fmt.Sprintf("Invalid value in light intensity: %f\n", s.Light)
 	}
 	if msg != "" {
 		return errors.New(msg)

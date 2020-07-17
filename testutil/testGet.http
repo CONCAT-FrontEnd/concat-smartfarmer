@@ -1,0 +1,6 @@
+POST https://asia-northeast1-superfarmers.cloudfunctions.net/Get
+Content-Type: application/json
+
+{
+  "uuid": "test"
+}
