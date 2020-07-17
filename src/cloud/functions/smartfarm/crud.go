@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
+
+	"google.golang.org/api/iterator"
 
 	"cloud.google.com/go/firestore"
 )
@@ -40,12 +43,11 @@ func Insert(writer http.ResponseWriter, req *http.Request) {
 	// check whether sensor data is usual or not
 	if err = sensorData.verify(); err != nil {
 		fmt.Fprintf(writer, "verification failed: %v", err)
-		return
 	}
 
 	// store into collection
 	if _, _, err = client.Collection("sensor_data").Add(ctx, sensorData); err != nil {
-		fmt.Fprintf(writer, "insert: %v", err)
+		fmt.Fprintf(writer, "firestore.Add: %v", err)
 		return
 	}
 }
@@ -65,7 +67,25 @@ func Get(writer http.ResponseWriter, req *http.Request) {
 	}
 	defer client.Close()
 
-	// TODO: define query format, get from collection
+	var request struct {
+		UUID string `json:"uuid"`
+	}
+	if err = json.NewDecoder(req.Body).Decode(&request); err != nil {
+		fmt.Fprintf(writer, "json.Decode: %v", err)
+		return
+	}
+
+	now := time.Now().Unix()
+
+	cursor := client.Collection("sensor_data").Where("uuid", "==", request.UUID).Where("unix_time", ">=", now-7*24*60*60).Documents(ctx)
+	for {
+		doc, err := cursor.Next()
+		if err == iterator.Done {
+			break
+		}
+		// TODO: send json data with documents
+		_ = doc
+	}
 }
 
 // [End smart_farm_get]
